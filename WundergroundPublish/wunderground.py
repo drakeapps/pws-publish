@@ -47,3 +47,10 @@ class API:
 			else:
 				clean[key] = value
 		return clean
+	
+	async def run_loop(self, callback, refresh_rate=60):
+		while 1:
+			data = await self.fetch_current()
+			await callback(data)
+			# this isn't truly an X second refresh rate, since there's a delay in fetching the data and publishing that data
+			await asyncio.sleep(refresh_rate)

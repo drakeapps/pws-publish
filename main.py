@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import json
 
-from WundergroundPublish import api
+from WundergroundPublish import wunderground
 from WundergroundPublish import mqtt
 from WundergroundPublish import websocket
 from WundergroundPublish import influxdb
@@ -37,7 +37,7 @@ parser.add_argument('--raw-stdout', help="Write JSON to stdout of raw API data",
 
 args = parser.parse_args()
 
-wunderground = api.API(args.api_key, args.station_id, units=args.units, verbose=args.verbose)
+wunderground_api = wunderground.API(args.api_key, args.station_id, units=args.units, verbose=args.verbose)
 
 if args.mqtt:
 	if args.verbose:
@@ -61,6 +61,26 @@ else:
 	influx_publish = None
 
 
+async def publish_data(data):
+	tasks = set()
+
+	if mqtt_publish:
+		task = asyncio.create_task(mqtt_publish.publish(data))
+		tasks.add(task)
+	
+	if websocket_server:
+		task = asyncio.create_task(websocket_server.set_data(data))
+		tasks.add(task)
+	
+	if influx_publish:
+		task = asyncio.create_task(influx_publish.write(data))
+		tasks.add(task)
+
+	if args.stdout:
+		print(json.dumps(data))
+
+	await asyncio.gather(*tasks)
+
 async def main():
 	if mqtt_publish:
 		await mqtt_publish.connect()
@@ -69,32 +89,8 @@ async def main():
 	if influx_publish:
 		await influx_publish.connect()
 	
+	await wunderground_api.run_loop(publish_data, refresh_rate=args.refresh_rate)
 	
-	while 1:
-		data = await wunderground.fetch_current()
-
-		tasks = set()
-
-		if mqtt_publish:
-			task = asyncio.create_task(mqtt_publish.publish(data))
-			tasks.add(task)
-		
-		if websocket_server:
-			task = asyncio.create_task(websocket_server.set_data(data))
-			tasks.add(task)
-		
-		if influx_publish:
-			task = asyncio.create_task(influx_publish.write(data))
-			tasks.add(task)
-
-		if args.stdout:
-			print(json.dumps(data))
-
-		await asyncio.gather(*tasks)
-
-
-		# this isn't truly an X second refresh rate, since there's a delay in fetching the data and publishing that data
-		await asyncio.sleep(args.refresh_rate)
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
