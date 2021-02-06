@@ -1,0 +1,13 @@
+version: '3'
+
+services: 
+  publish:
+    image: ghcr.io/drakeapps/wunderground-publish
+    restart: unless-stopped
+    build:
+      context: .
+    ports:
+      - 6789:6789
+    env_file: .env
+    command: --api-key ${API_KEY} --station-id ${STATION_ID} --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 127.0.0.1 --refresh-rate 60 --influx --influx-host influx.xrho.com --stdout --verbose
+
