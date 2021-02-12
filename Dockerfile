@@ -7,7 +7,7 @@ COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 WORKDIR /code/
-COPY PWSPublish /code/WundergroundPublish
+COPY PWSPublish /code/PWSPublish
 COPY main.py /code/
 
 ENV API_KEY "" \
