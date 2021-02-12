@@ -19,14 +19,21 @@ class Stream:
 		self.verbose = verbose
 
 		self.sio = socketio.AsyncClient(logger=True, engineio_logger=True)
+	
+	async def handle_subscribe(self, message):
+		if self.verbose:
+			print(f"ambient new subscribed message: {message}")
+		# right now, we're assuming one device connected
+		# TODO: not that
+		data = message['devices'][0]['lastData']
+		await self.callback(data)
 
 	async def handle_message(self, message):
 		if self.verbose:
 			print(f"ambient new message: {message}")
 		# right now, we're assuming one device connected
 		# TODO: not that
-		device_info = message[0]
-		await self.callback(device_info)
+		await self.callback(message)
 	
 	async def disconnect(self, message):
 		if self.verbose:
@@ -45,7 +52,7 @@ class Stream:
 		if self.verbose:
 			print(f"ambient: connected, sending init")
 		
-		self.sio.on("subscribed", self.handle_message)
+		self.sio.on("subscribed", self.handle_subscribe)
 
 		self.sio.on("data", self.handle_message)
 
