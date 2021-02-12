@@ -2,16 +2,22 @@ import argparse
 import asyncio
 import json
 
-from WundergroundPublish import wunderground
-from WundergroundPublish import mqtt
-from WundergroundPublish import websocket
-from WundergroundPublish import influxdb
+from PWSPublish import wunderground
+from PWSPublish import ambient
+from PWSPublish import mqtt
+from PWSPublish import websocket
+from PWSPublish import influxdb
 
 
-parser = argparse.ArgumentParser(description='Wunderground PWS Publisher')
+parser = argparse.ArgumentParser(description='Wunderground/Ambient Weather PWS Publisher')
 
-parser.add_argument('--api-key', help="wunderground api key", required=True)
-parser.add_argument('--station-id',  help="wunderground station id", required=True)
+parser.add_argument('--wunderground', help="enable wunderground api polling", action='store_true')
+parser.add_argument('--api-key', help="wunderground weather api key")
+parser.add_argument('--station-id',  help="wunderground station id")
+
+parser.add_argument('--ambient-weather', help="enable ambient weather api stream", action='store_true')
+parser.add_argument('--ambient-api-key', help="ambient weather api key")
+parser.add_argument('--application-key', help="ambient weather application key")
 
 parser.add_argument('--influx', help='publish to influxdb', action='store_true')
 parser.add_argument("--influx-host", help="InfluxDB Host", default="localhost")
@@ -37,7 +43,15 @@ parser.add_argument('--raw-stdout', help="Write JSON to stdout of raw API data",
 
 args = parser.parse_args()
 
-wunderground_api = wunderground.API(args.api_key, args.station_id, units=args.units, verbose=args.verbose)
+if args.wunderground:
+	wunderground_api = wunderground.API(args.api_key, args.station_id, units=args.units, verbose=args.verbose)
+else:
+	wunderground_api = None
+
+if args.ambient_weather:
+	ambient_weather_api = ambient.Stream(args.api_key, args.application_key, device=args.station_id, verbose=args.verbose)
+else:
+	ambient_weather_api = None
 
 if args.mqtt:
 	if args.verbose:
@@ -88,8 +102,19 @@ async def main():
 		await websocket_server.start_server()
 	if influx_publish:
 		await influx_publish.connect()
+
 	
-	await wunderground_api.run_loop(publish_data, refresh_rate=args.refresh_rate)
+	# run wunderground and ambient concurrently
+	tasks = set()
+	if wunderground_api:
+		task = asyncio.create_task(wunderground_api.run_loop(publish_data, refresh_rate=args.refresh_rate))
+		tasks.add(task)
+	
+	if ambient_weather_api:
+		task = asyncio.create_task(ambient_weather_api.run_loop(publish_data))
+		tasks.add(task)
+	
+	await asyncio.gather(*tasks)
 	
 
 loop = asyncio.get_event_loop()

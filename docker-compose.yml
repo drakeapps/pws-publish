@@ -2,12 +2,21 @@ version: '3'
 
 services: 
   publish:
-    image: ghcr.io/drakeapps/wunderground-publish
+    image: ghcr.io/drakeapps/pws-publish
     restart: unless-stopped
     build:
       context: .
     ports:
       - 6789:6789
     env_file: .env
-    command: --api-key ${API_KEY} --station-id ${STATION_ID} --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 0.0.0.0 --refresh-rate 60 --influx --influx-host influx.xrho.com --stdout --verbose
+    command: --api-key ${API_KEY} --station-id ${STATION_ID} --wunderground --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 0.0.0.0 --refresh-rate 60 --influx --influx-host influx.xrho.com --stdout --verbose
+  publish-ambient:
+    image: ghcr.io/drakeapps/pws-publish
+    restart: unless-stopped
+    build:
+      context: .
+    ports:
+      - 6789:6789
+    env_file: .env
+    command: --ambient-api-key ${AMBIENT_API_KEY} --station-id ${STATION_ID} --application-key ${APPLICATION_KEY}--ambient-weather --mqtt --mqtt-broker mqtt.xrho.com --websocket --refresh-rate 60 --influx-host o.xrho.com --verbose --mqtt-prefix ambientWeather --influx --influx-db ambient-weather
 
