@@ -1,16 +1,21 @@
-# Wunderground PWS Publisher
+# Wunderground/Ambient Weather PWS Publisher
 
-Poll Wunderground API to pull current weather station information and publish it to a Websocket server, MQTT broker, and/or InfluxDB.
+Poll Wunderground API or connect to Ambient Weather socket stream to receive current weather station information and publish it to a Websocket server, MQTT broker, and/or InfluxDB.
 
 Your Wunderground API key is found under [member settings](https://www.wunderground.com/member/api-keys).
+
+Create an API key and Application Key under your [Ambient Weather account](https://ambientweather.net/account)
+
+You will need to have either `--wunderground` or `--ambient-weather` as arguments, or it won't connect to either.
 
 ## Command Line Arguments
 
 ```
 python main.py -h
-usage: main.py [-h] --api-key API_KEY --station-id STATION_ID [--influx]
-               [--influx-host INFLUX_HOST] [--influx-port INFLUX_PORT]
-               [--influx-db INFLUX_DB]
+usage: main.py [-h] [--wunderground] --api-key API_KEY --station-id STATION_ID
+               [--ambient-weather] [--application-key APPLICATION_KEY]
+               [--influx] [--influx-host INFLUX_HOST]
+               [--influx-port INFLUX_PORT] [--influx-db INFLUX_DB]
                [--influx-measurement INFLUX_MEASUREMENT] [--websocket]
                [--websocket-host WEBSOCKET_HOST]
                [--websocket-port WEBSOCKET_PORT] [--mqtt]
@@ -18,13 +23,17 @@ usage: main.py [-h] --api-key API_KEY --station-id STATION_ID [--influx]
                [--refresh-rate REFRESH_RATE] [--units UNITS] [--verbose]
                [--stdout] [--raw-stdout]
 
-Wunderground PWS Publisher
+Wunderground/Ambient Weather PWS Publisher
 
 optional arguments:
   -h, --help            show this help message and exit
-  --api-key API_KEY     wunderground api key
+  --wunderground        enable wunderground api polling
+  --api-key API_KEY     wunderground/ambient weather api key
   --station-id STATION_ID
                         wunderground station id
+  --ambient-weather     enable ambient weather api stream
+  --application-key APPLICATION_KEY
+                        ambient weather application key
   --influx              publish to influxdb
   --influx-host INFLUX_HOST
                         InfluxDB Host
@@ -67,5 +76,6 @@ optional arguments:
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
-python3 main.py --api-key 1234567890abcdef --station-id KTXHOUST3324 --influx --websocket --mqtt
+# wunderground example
+python3 main.py --api-key 1234567890abcdef --station-id KTXHOUST3324 --wunderground --influx --websocket --mqtt
 ```

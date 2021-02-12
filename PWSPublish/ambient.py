@@ -18,7 +18,10 @@ class Stream:
 
 		self.verbose = verbose
 
-		self.sio = socketio.AsyncClient(logger=True, engineio_logger=True)
+		extra_args = {}
+		if self.verbose:
+			extra_args = {"logger": True, "engineio_logger": True}
+		self.sio = socketio.AsyncClient(**extra_args)
 	
 	async def handle_subscribe(self, message):
 		if self.verbose:
@@ -68,5 +71,6 @@ class Stream:
 			print(f"ambient: stream initialized")
 		
 		await self.sio.wait()
-		print(f"ambient: sio wait finished")
+		if self.verbose:
+			print(f"ambient: sio wait finished")
 

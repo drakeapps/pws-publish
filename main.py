@@ -2,20 +2,21 @@ import argparse
 import asyncio
 import json
 
-from WundergroundPublish import wunderground
-from WundergroundPublish import ambient
-from WundergroundPublish import mqtt
-from WundergroundPublish import websocket
-from WundergroundPublish import influxdb
+from PWSPublish import wunderground
+from PWSPublish import ambient
+from PWSPublish import mqtt
+from PWSPublish import websocket
+from PWSPublish import influxdb
 
 
-parser = argparse.ArgumentParser(description='Wunderground PWS Publisher')
+parser = argparse.ArgumentParser(description='Wunderground/Ambient Weather PWS Publisher')
 
 parser.add_argument('--wunderground', help="enable wunderground api polling", action='store_true')
-parser.add_argument('--api-key', help="wunderground/ambient weather api key", required=True)
-parser.add_argument('--station-id',  help="wunderground station id", required=True)
+parser.add_argument('--api-key', help="wunderground weather api key")
+parser.add_argument('--station-id',  help="wunderground station id")
 
 parser.add_argument('--ambient-weather', help="enable ambient weather api stream", action='store_true')
+parser.add_argument('--ambient-api-key', help="ambient weather api key")
 parser.add_argument('--application-key', help="ambient weather application key")
 
 parser.add_argument('--influx', help='publish to influxdb', action='store_true')
@@ -101,12 +102,19 @@ async def main():
 		await websocket_server.start_server()
 	if influx_publish:
 		await influx_publish.connect()
+
 	
+	# run wunderground and ambient concurrently
+	tasks = set()
 	if wunderground_api:
-		await wunderground_api.run_loop(publish_data, refresh_rate=args.refresh_rate)
+		task = asyncio.create_task(wunderground_api.run_loop(publish_data, refresh_rate=args.refresh_rate))
+		tasks.add(task)
 	
 	if ambient_weather_api:
-		await ambient_weather_api.run_loop(publish_data)
+		task = asyncio.create_task(ambient_weather_api.run_loop(publish_data))
+		tasks.add(task)
+	
+	await asyncio.gather(*tasks)
 	
 
 loop = asyncio.get_event_loop()

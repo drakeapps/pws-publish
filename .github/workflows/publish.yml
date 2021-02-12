@@ -42,7 +42,7 @@ jobs:
         if: success() && contains(steps.prepare.outputs.version, 'master')
         run: |
           docker buildx build \
-            --output type=image,name=ghcr.io/drakeapps/wunderground-publish,push=true \
+            --output type=image,name=ghcr.io/drakeapps/pws-publish,push=true \
             --platform ${{ steps.prepare.outputs.docker_platforms }} \
-            --tag "ghcr.io/drakeapps/wunderground-publish:latest" \
+            --tag "ghcr.io/drakeapps/pws-publish:latest" \
             --file Dockerfile .
