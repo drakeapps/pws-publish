@@ -18,5 +18,22 @@ services:
     ports:
       - 6789:6789
     env_file: .env
-    command: --ambient-api-key ${AMBIENT_API_KEY} --station-id ${STATION_ID} --application-key ${APPLICATION_KEY}--ambient-weather --mqtt --mqtt-broker mqtt.xrho.com --websocket --refresh-rate 60 --influx-host o.xrho.com --verbose --mqtt-prefix ambientWeather --influx --influx-db ambient-weather
+    command: --ambient-api-key ${AMBIENT_API_KEY} --station-id ${STATION_ID} --application-key ${APPLICATION_KEY} --ambient-weather --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 0.0.0.0 --refresh-rate 60 --influx-host o.xrho.com --verbose --mqtt-prefix ambientWeather --influx --influx-db ambient-weather
+  ambient-proxy:
+    image: ghcr.io/drakeapps/ambient-proxy
+    restart: unless-stopped
+    env_file: .env
+    expose:
+      - 8080
+  publish-ambient-proxy:
+    image: ghcr.io/drakeapps/pws-publish
+    restart: unless-stopped
+    build:
+      context: .
+    ports:
+      - 6789:6789
+    env_file: .env
+    depends_on: 
+      - ambient-proxy
+    command: --station-id ${STATION_ID} --ambient-weather-proxy --ambient-proxy-host ambient-proxy --ambient-proxy-port 7171 --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 0.0.0.0 --refresh-rate 60 --influx-host o.xrho.com --verbose --mqtt-prefix ambientWeather --influx --influx-db ambient-weather
 

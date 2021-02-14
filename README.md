@@ -6,7 +6,15 @@ Your Wunderground API key is found under [member settings](https://www.wundergro
 
 Create an API key and Application Key under your [Ambient Weather account](https://ambientweather.net/account)
 
-You will need to have either `--wunderground` or `--ambient-weather` as arguments, or it won't connect to either.
+You will need to have either `--wunderground`, `--ambient-weather`, `--ambient-proxy` as arguments, or it won't connect to anything.
+
+## Ambient Proxy
+
+[ambient-proxy](https://github.com/drakeapps/ambient-proxy) is a simple node websocket server that's just replaying the data received from the Ambient Weather Realtime API. I have continuously had issues with the Ambient Weather socket-io API, but have had zero issues with the node one. 
+
+This is a way to use the Node library but maintain all the 
+
+There is a docker-compose target, `publish-ambient-proxy`, that will pull and run the proxy. This uses the same environment variables as the normal Ambient Weather container. 
 
 ## Command Line Arguments
 
