@@ -19,11 +19,16 @@ There is a docker-compose target, `publish-ambient-proxy`, that will pull and ru
 ## Command Line Arguments
 
 ```
-python main.py -h
-usage: main.py [-h] [--wunderground] --api-key API_KEY --station-id STATION_ID
-               [--ambient-weather] [--application-key APPLICATION_KEY]
-               [--influx] [--influx-host INFLUX_HOST]
-               [--influx-port INFLUX_PORT] [--influx-db INFLUX_DB]
+python main.py -h                                                    
+usage: main.py [-h] [--wunderground] [--api-key API_KEY]
+               [--station-id STATION_ID] [--ambient-weather]
+               [--ambient-api-key AMBIENT_API_KEY]
+               [--application-key APPLICATION_KEY] [--ambient-proxy]
+               [--ambient-proxy-host AMBIENT_PROXY_HOST]
+               [--ambient-proxy-port AMBIENT_PROXY_PORT]
+               [--ambient-proxy-method AMBIENT_PROXY_METHOD] [--influx]
+               [--influx-host INFLUX_HOST] [--influx-port INFLUX_PORT]
+               [--influx-db INFLUX_DB]
                [--influx-measurement INFLUX_MEASUREMENT] [--websocket]
                [--websocket-host WEBSOCKET_HOST]
                [--websocket-port WEBSOCKET_PORT] [--mqtt]
@@ -36,12 +41,22 @@ Wunderground/Ambient Weather PWS Publisher
 optional arguments:
   -h, --help            show this help message and exit
   --wunderground        enable wunderground api polling
-  --api-key API_KEY     wunderground/ambient weather api key
+  --api-key API_KEY     wunderground weather api key
   --station-id STATION_ID
                         wunderground station id
   --ambient-weather     enable ambient weather api stream
+  --ambient-api-key AMBIENT_API_KEY
+                        ambient weather api key
   --application-key APPLICATION_KEY
                         ambient weather application key
+  --ambient-proxy       enable ambient weather api stream using a separate
+                        ambient websocket proxy
+  --ambient-proxy-host AMBIENT_PROXY_HOST
+                        ambient weather proxy host
+  --ambient-proxy-port AMBIENT_PROXY_PORT
+                        ambient weather proxy port
+  --ambient-proxy-method AMBIENT_PROXY_METHOD
+                        ambient weather proxy method (ws or wss)
   --influx              publish to influxdb
   --influx-host INFLUX_HOST
                         InfluxDB Host
