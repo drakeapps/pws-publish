@@ -35,5 +35,5 @@ services:
     env_file: .env
     depends_on: 
       - ambient-proxy
-    command: --station-id ${STATION_ID} --ambient-proxy --ambient-proxy-host ambient-proxy --ambient-proxy-port 7171 --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 0.0.0.0 --refresh-rate 60 --influx-host o.xrho.com --verbose --mqtt-prefix ambientWeather --influx --influx-db ambient-weather
+    command: --station-id ${STATION_ID} --ambient-proxy --ambient-proxy-host ambient-proxy --ambient-proxy-port 8080 --mqtt --mqtt-broker mqtt.xrho.com --websocket --websocket-host 0.0.0.0 --refresh-rate 60 --influx-host o.xrho.com --verbose --mqtt-prefix ambientWeather --influx --influx-db ambient-weather
 
