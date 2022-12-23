@@ -4,6 +4,7 @@ import json
 
 from PWSPublish import wunderground
 from PWSPublish import ambient
+from PWSPublish import ambientproxy
 from PWSPublish import mqtt
 from PWSPublish import websocket
 from PWSPublish import influxdb
@@ -18,6 +19,11 @@ parser.add_argument('--station-id',  help="wunderground station id")
 parser.add_argument('--ambient-weather', help="enable ambient weather api stream", action='store_true')
 parser.add_argument('--ambient-api-key', help="ambient weather api key")
 parser.add_argument('--application-key', help="ambient weather application key")
+
+parser.add_argument('--ambient-proxy', help="enable ambient weather api stream using a separate ambient websocket proxy", action='store_true')
+parser.add_argument('--ambient-proxy-host', help="ambient weather proxy host", default="ambient-proxy")
+parser.add_argument('--ambient-proxy-port', help="ambient weather proxy port", type=int, default=8080)
+parser.add_argument('--ambient-proxy-method', help="ambient weather proxy method (ws or wss)", default="ws")
 
 parser.add_argument('--influx', help='publish to influxdb', action='store_true')
 parser.add_argument("--influx-host", help="InfluxDB Host", default="localhost")
@@ -44,14 +50,25 @@ parser.add_argument('--raw-stdout', help="Write JSON to stdout of raw API data",
 args = parser.parse_args()
 
 if args.wunderground:
+	if args.verbose:
+		print(f"Wunderground enabled")
 	wunderground_api = wunderground.API(args.api_key, args.station_id, units=args.units, verbose=args.verbose)
 else:
 	wunderground_api = None
 
 if args.ambient_weather:
+	if args.verbose:
+		print(f"Ambient Weather enabled")
 	ambient_weather_api = ambient.Stream(args.api_key, args.application_key, device=args.station_id, verbose=args.verbose)
 else:
 	ambient_weather_api = None
+
+if args.ambient_proxy:
+	if args.verbose:
+		print(f"Ambient Weather proxy enabled")
+	ambient_proxy = ambientproxy.Proxy(host=args.ambient_proxy_host, port=args.ambient_proxy_port, method=args.ambient_proxy_method, verbose=args.verbose)
+else:
+	ambient_proxy = None
 
 if args.mqtt:
 	if args.verbose:
@@ -113,6 +130,9 @@ async def main():
 	if ambient_weather_api:
 		task = asyncio.create_task(ambient_weather_api.run_loop(publish_data))
 		tasks.add(task)
+	
+	if ambient_proxy:
+		task = asyncio.create_task(ambient_proxy.run_loop(publish_data))
 	
 	await asyncio.gather(*tasks)
 	
